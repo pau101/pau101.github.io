@@ -174,13 +174,22 @@ class Triangulate {
     }
 
     keydown(event) {
-        // C
-        if (event.keyCode == 67) {
+        var key = event.keyCode;
+        if (key == 67) { // C
             this.contour = [];
             this.triangles = [];
             delete this.heldPoint;
             delete this.highlightPoint;
             delete this.highlightEdge;
+            this.draw();
+        } else if (key == 83 && this.contour.length > 1) { // S
+            var first = this.contour[0];
+            var len = this.contour.length;
+            for (var i = 0; i < len;) {
+                this.contour[i++] = this.contour[i];
+            }
+            this.contour[len - 1] = first;
+            this.triangulate();
             this.draw();
         }
     }
@@ -290,12 +299,13 @@ class Triangulate {
     }
 
     drawShape() {
+        this.ctx.lineWidth = 1;
         for (var i = 0; i < this.triangles.length; i++) {
             var point = this.triangles[i];
             switch (i % 3) {
                 case 0: {
                     var hue = i / this.triangles.length * 360;
-                    this.ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                    this.ctx.strokeStyle = this.ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
                     this.ctx.beginPath();
                     this.ctx.moveTo(point.x, point.y);
                     break;
@@ -306,6 +316,7 @@ class Triangulate {
                 case 2:
                     this.ctx.lineTo(point.x, point.y);
                     this.ctx.closePath();
+                    this.ctx.stroke();
                     this.ctx.fill();
             }
         }
@@ -331,6 +342,11 @@ class Triangulate {
             this.ctx.closePath();
             this.ctx.stroke();
         }
+        /*
+        this.ctx.beginPath();
+        this.ctx.arc(first.x, first.y, this.pointSize * 3, 0, Math.PI * 2);
+        this.ctx.fillStyle = "rgba(255, 130, 0, 0.75)";
+        this.ctx.fill(); //*/
         if (this.highlightPoint) {
             this.ctx.beginPath();
             this.ctx.arc(this.highlightPoint.x, this.highlightPoint.y, this.pointSize * 2, 0, Math.PI * 2);
