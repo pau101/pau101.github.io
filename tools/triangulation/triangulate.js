@@ -64,6 +64,7 @@ class Triangulate {
         this.pointSize = 4;
         this.pointSnapDistSq = this.pointSize * this.pointSize * 4;
         this.lineSnapDistSq = 20;
+        this.epsilon = 1e-8;
         this.resize();
         window.addEventListener("keydown", (e) => this.keydown(e));
         window.addEventListener("resize", () => this.resize());
@@ -195,7 +196,90 @@ class Triangulate {
     }
 
     triangulate() {
+        this.triangles = [];
+        var n = this.contour.length;
+        if (n < 3) {
+            return;
+        }
+        var v = new Array(n);
+        v.fill(0);
+        if (this.area(this.contour) > 0) {
+            for (var i = 0; i < n; i++) v[i] = i;
+        } else {
+            for (var i = 0; i < n; i++) v[i] = n - 1 - i;
+        }
+        var nv = n;
+        var count = 2 * nv;
+        for (var m = 0, i = nv - 1; nv > 2;) {
+            if (count-- <= 0) {
+                return;
+            }
+            var u = i >= nv ? 0 : i;
+            i = u + 1;
+            if (i >= nv) {
+                i = 0;
+            }
+            var w = i + 1;
+            if (w >= nv) {
+                w = 0;
+            }
+            if (this.snip(this.contour, u, i, w, nv, v)) {
+                var a = v[u], b = v[i], c = v[w];
+                this.triangles.push(this.contour[a]);
+                this.triangles.push(this.contour[b]);
+                this.triangles.push(this.contour[c]);
+                m++;
+                for (var s = i, t = i + 1; t < nv; s++, t++) {
+                    v[s] = v[t];
+                }
+                nv--;
+                count = 2 * nv;
+            }
+        }
+    }
 
+    area(contour) {
+        var a = 0;
+        for (var p = contour.length - 1, q = 0; q < contour.length; p = q++) {
+            a += contour[p].x * contour[q].y - contour[q].x * contour[p].y;
+        }
+        return a / 2;
+    }
+
+    snip(contour, u, i, w, n, v) {
+        var ax = contour[v[u]].x;
+        var ay = contour[v[u]].y;
+        var bx = contour[v[i]].x;
+        var by = contour[v[i]].y;
+        var cx = contour[v[w]].x;
+        var cy = contour[v[w]].y;
+        if (this.epsilon > (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)) {
+            return false;
+        }
+        for (var p = 0; p < n; p++) {
+            if (p == u || p == i || p == w) {
+                continue;
+            }
+            var px = contour[v[p]].x;
+            var py = contour[v[p]].y;
+            if (this.insideTriangle(ax, ay, bx, by, cx, cy, px, py)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    insideTriangle(ax, ay, bx, by, cx, cy, px, py) {
+        var ax  = cx - bx, ay  = cy - by;
+        var bx  = ax - cx, by  = ay - cy;
+        var cx  = bx - ax, cy  = by - ay;
+        var apx = px - ax, apy = py - ay;
+        var bpx = px - bx, bpy = py - by;
+        var cpx = px - cx, cpy = py - cy;
+        var aCROSSbp = ax * bpy - ay * bpx;
+        var cCROSSap = cx * apy - cy * apx;
+        var bCROSScp = bx * cpy - by * cpx;
+        return aCROSSbp >= 0 && bCROSScp >= 0 && cCROSSap >= 0;
     }
 
     draw() {
@@ -207,10 +291,11 @@ class Triangulate {
 
     drawShape() {
         for (var i = 0; i < this.triangles.length; i++) {
+            var point = this.triangles[i];
             switch (i % 3) {
                 case 0: {
-                    var hue = i * 3 / this.triangles.length;
-                    this.ctx.fillStyle = `hsl(${hue}, 1, 1)`;
+                    var hue = i / 3 / this.triangles.length * 360;
+                    this.ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
                     this.ctx.beginPath();
                     this.ctx.moveTo(point.x, point.y);
                     break;
