@@ -86,14 +86,14 @@ class Triangulate {
     }
 
     contextmenu(event) {
+        var update = false;
         if (this.highlightPoint) {
             this.contour.remove(this.highlightPoint);
             if (this.highlightPoint == this.heldPoint) {
                 delete this.heldPoint;
             }
             delete this.highlightPoint;
-            this.triangulate();
-            this.draw();
+            update = true;
         }
         if (this.highlightEdge) {
             this.contour.remove(this.highlightEdge.p1);
@@ -102,10 +102,13 @@ class Triangulate {
                 delete this.heldPoint;
             }
             delete this.highlightEdge;
+            update = true;
+        }
+        if (update ) {
             this.triangulate();
             this.draw();
+            event.preventDefault();
         }
-        event.preventDefault();
     }
 
     handleLeftMouseDown(mouse) {
