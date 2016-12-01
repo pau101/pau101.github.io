@@ -294,7 +294,7 @@ class Triangulate {
             var point = this.triangles[i];
             switch (i % 3) {
                 case 0: {
-                    var hue = i / 3 / this.triangles.length * 360;
+                    var hue = i / this.triangles.length * 360;
                     this.ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
                     this.ctx.beginPath();
                     this.ctx.moveTo(point.x, point.y);
