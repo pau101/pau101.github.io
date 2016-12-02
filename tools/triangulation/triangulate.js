@@ -51,23 +51,36 @@ class Vec {
     }
 }
 
+/*
+ * http://flipcode.net/archives/Efficient_Polygon_Triangulation.shtml
+ *
+ * With fixed point in triangle test since original was faulty
+ */
 class Triangulate {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
-        this.canvas.addEventListener("mousedown", (e) => this.mousedown(e));
-        this.canvas.addEventListener("mouseup", (e) => this.mouseup(e));
-        this.canvas.addEventListener("mousemove", (e) => this.mousemove(e));
-        this.canvas.addEventListener("contextmenu", (e) => this.contextmenu(e));
+        this.canvas.addEventListener("mousedown", e => this.mousedown(e));
+        this.canvas.addEventListener("mouseup", e => this.mouseup(e));
+        this.canvas.addEventListener("mousemove", e => this.mousemove(e));
+        this.canvas.addEventListener("contextmenu", e => this.contextmenu(e));
         this.contour = [];
         this.triangles = [];
         this.pointSize = 4;
         this.pointSnapDistSq = this.pointSize * this.pointSize * 4;
         this.lineSnapDistSq = 20;
         this.epsilon = 1e-8;
+        if (localStorage.contour) {
+            var c = JSON.parse(localStorage.contour);
+            if (Array.isArray(c)) {
+                c.forEach(p => this.contour.push(new Vec(p.x, p.y)));
+                this.triangulate();
+            }
+        }
         this.resize();
-        window.addEventListener("keydown", (e) => this.keydown(e));
+        window.addEventListener("keydown", e => this.keydown(e));
         window.addEventListener("resize", () => this.resize());
+        window.addEventListener("beforeunload", () => this.unload());
     }
 
     resize() {
@@ -76,6 +89,10 @@ class Triangulate {
         this.ctx.lineJoin = "round";
         this.ctx.lineCap = "round";
         this.draw();
+    }
+
+    unload() {
+        localStorage.contour = JSON.stringify(this.contour);
     }
 
     mousedown(event) {
@@ -182,15 +199,6 @@ class Triangulate {
             delete this.highlightPoint;
             delete this.highlightEdge;
             this.draw();
-        } else if (key == 83 && this.contour.length > 1) { // S
-            var first = this.contour[0];
-            var len = this.contour.length;
-            for (var i = 0; i < len;) {
-                this.contour[i++] = this.contour[i];
-            }
-            this.contour[len - 1] = first;
-            this.triangulate();
-            this.draw();
         }
     }
 
@@ -219,7 +227,7 @@ class Triangulate {
         }
         var nv = n;
         var count = 2 * nv;
-        for (var m = 0, i = nv - 1; nv > 2;) {
+        for (var i = nv - 1; nv > 2;) {
             if (count-- <= 0) {
                 return;
             }
@@ -237,7 +245,6 @@ class Triangulate {
                 this.triangles.push(this.contour[a]);
                 this.triangles.push(this.contour[b]);
                 this.triangles.push(this.contour[c]);
-                m++;
                 for (var s = i, t = i + 1; t < nv; s++, t++) {
                     v[s] = v[t];
                 }
@@ -278,17 +285,18 @@ class Triangulate {
         return true;
     }
 
+    // http://stackoverflow.com/a/9755252
     insideTriangle(ax, ay, bx, by, cx, cy, px, py) {
-        var ax  = cx - bx, ay  = cy - by;
-        var bx  = ax - cx, by  = ay - cy;
-        var cx  = bx - ax, cy  = by - ay;
-        var apx = px - ax, apy = py - ay;
-        var bpx = px - bx, bpy = py - by;
-        var cpx = px - cx, cpy = py - cy;
-        var aCROSSbp = ax * bpy - ay * bpx;
-        var cCROSSap = cx * apy - cy * apx;
-        var bCROSScp = bx * cpy - by * cpx;
-        return aCROSSbp >= 0 && bCROSScp >= 0 && cCROSSap >= 0;
+        var as_x = px - ax;
+        var as_y = py - ay;
+        var p_ab = (bx - ax) * as_y - (by - ay) * as_x > 0;
+        if ((cx - ax) * as_y - (cy - ay) * as_x > 0 == p_ab) {
+            return false;
+        }
+        if ((cx - bx) * (py - by) - (cy - by) * (px - bx) > 0 != p_ab) {
+            return false;
+        }
+        return true;
     }
 
     draw() {
@@ -342,11 +350,6 @@ class Triangulate {
             this.ctx.closePath();
             this.ctx.stroke();
         }
-        /*
-        this.ctx.beginPath();
-        this.ctx.arc(first.x, first.y, this.pointSize * 3, 0, Math.PI * 2);
-        this.ctx.fillStyle = "rgba(255, 130, 0, 0.75)";
-        this.ctx.fill(); //*/
         if (this.highlightPoint) {
             this.ctx.beginPath();
             this.ctx.arc(this.highlightPoint.x, this.highlightPoint.y, this.pointSize * 2, 0, Math.PI * 2);
