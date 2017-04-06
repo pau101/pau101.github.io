@@ -64,7 +64,7 @@ class LSD {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
         this.canvas.addEventListener("mousemove", e => this.mousemove(e));
-        this.segmentLength = 70;
+        this.segmentLength = 120;
         this.pointHead = new Vec(0, 0);
         this.pointTail = new Vec(0, this.segmentLength);
         this.resize();
@@ -77,7 +77,7 @@ class LSD {
         this.ctx.lineJoin = "round";
         this.ctx.lineCap = "round";
 		this.ctx.strokeStyle = this.ctx.fillStyle = "#000";
-		this.ctx.lineWidth = 10;
+		this.ctx.lineWidth = 5;
         this.draw();
     }
 
@@ -98,8 +98,8 @@ class LSD {
 		this.ctx.moveTo(p1.x, p1.y);
 		this.ctx.lineTo(p2.x, p2.y);
 		this.ctx.stroke();
-		this.drawPoint(p1, 17);
-		this.drawPoint(p2, 17);
+		this.drawPoint(p1, 8);
+		this.drawPoint(p2, 8);
 	}
 
 	drawPoint(point, radius) {
