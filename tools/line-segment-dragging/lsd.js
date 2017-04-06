@@ -104,15 +104,15 @@ class LSD {
     }
 
     touchdown(event) {
-        touch(event, this.mousedown);
+        this.touch(event, this.mousedown);
     }
 
     touchup(event) {
-        touch(event, this.mouseup);
+        this.touch(event, this.mouseup);
     }
 
     touchmove(event) {
-        touch(event, this.mousemove);
+        this.touch(event, this.mousemove);
     }
 
     touch(event, func) {
