@@ -67,10 +67,24 @@ class LSD {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
+        this.canvas.addEventListener("mousedown", e => this.mousedown(e));
+        this.canvas.addEventListener("mouseup", e => this.mouseup(e));
         this.canvas.addEventListener("mousemove", e => this.mousemove(e));
         this.canvas.addEventListener("mousewheel", e => this.mousewheel(e));
         this.segmentLength = 120;
-        this.vertices = [ new Vec(0, 0), new Vec(0, this.segmentLength) ];
+        this.vertexRadius = 10;
+        this.lineWidth = 4;
+        this.vertexClickRadiusSq = this.vertexRadius * this.vertexRadius + this.lineWidth * this.lineWidth;
+        var initialVertCount = 10;
+        var cx = window.innerWidth / 2;
+        var cz = window.innerHeight / 2;
+        var radius = window.innerWidth / 4;
+        this.vertices = [];
+        for (var i = 0; i < initialVertCount; i++) {
+            var ang = i / initialVertCount * Math.PI * 2;
+            this.vertices.push(new Vec(cx + Math.cos(ang) * radius, cz + Math.sin(ang) * radius));
+        }
+        this.update(this.vertices[0]);
         this.resize();
         window.addEventListener("resize", () => this.resize());
     }
@@ -82,8 +96,31 @@ class LSD {
         this.ctx.lineCap = "round";
 		this.ctx.strokeStyle = "black";
 		this.ctx.fillStyle = "white";
-		this.ctx.lineWidth = 4;
+		this.ctx.lineWidth = this.lineWidth;
         this.draw();
+    }
+
+    mousedown(event) {
+        if (event.button == 0) {
+            delete this.heldPoint;
+            delete this.heldLocal;
+            var point = new Vec(event.x, event.y);
+            for (var i = 0; i < this.vertices.length; i++) {
+                var vert = this.vertices[i];
+                if (vert.distanceSq(point) < this.vertexClickRadiusSq) {
+                    this.heldPoint = vert;
+                    this.heldLocal = vert.minus(point);
+                    break;
+                }
+            }
+        }
+    }
+
+    mouseup(event) {
+        if (event.button == 0 && this.heldPoint) {
+            delete this.heldPoint;
+            delete this.heldLocal;
+        }
     }
 
     mousewheel(event) {
@@ -100,15 +137,26 @@ class LSD {
     }
 
     mousemove(event) {
-        this.vertices[0] = new Vec(event.x, event.y);
-        this.update();
+        if (this.heldPoint) {
+            this.heldPoint.x = event.x + this.heldLocal.x;
+            this.heldPoint.y = event.y + this.heldLocal.y;
+            this.update(this.heldPoint);
+        }
     }
 
-    update() {
-        for (var i = 1, predecessor = this.vertices[0]; i < this.vertices.length; i++) {
-            this.vertices[i] = predecessor = predecessor.plus(this.vertices[i].minus(predecessor).normalize().mult(this.segmentLength));
+    update(controller) {
+        var cIdx = this.vertices.indexOf(controller);
+        for (var i = cIdx - 1, predecessor = controller; i >= 0; i--) {
+            this.vertices[i] = predecessor = this.solve(predecessor, this.vertices[i]);
+        }
+        for (var i = cIdx + 1, predecessor = controller; i < this.vertices.length; i++) {
+            this.vertices[i] = predecessor = this.solve(predecessor, this.vertices[i]);
         }
         this.draw();
+    }
+
+    solve(head, tail) {
+        return head.plus(tail.minus(head).normalize().mult(this.segmentLength));
     }
 
     draw() {
@@ -127,7 +175,7 @@ class LSD {
 		for (var i = this.vertices.length - 1; i >= 0; i--) {
             var vert = this.vertices[i];
 		    this.ctx.beginPath();
-		    this.ctx.arc(vert.x, vert.y, 10, 0, Math.PI * 2);
+		    this.ctx.arc(vert.x, vert.y, this.vertexRadius, 0, Math.PI * 2);
             this.ctx.fill();
             this.ctx.stroke();
         }
