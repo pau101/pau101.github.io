@@ -46,10 +46,14 @@ class Vec {
         return this.x * other.x + this.y * other.y;
     }
 
+    length() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
 	normalize() {
-		var len = Math.sqrt(this.x * this.x + this.y * this.y);
+		var len = this.length();
 		if (len == 0) {
-			return new new Vec(1, 0);
+			return new Vec(1, 0);
 		}
 		return new Vec(this.x / len, this.y / len);
 	}
