@@ -71,6 +71,9 @@ class LSD {
         this.canvas.addEventListener("mouseup", e => this.mouseup(e));
         this.canvas.addEventListener("mousemove", e => this.mousemove(e));
         this.canvas.addEventListener("mousewheel", e => this.mousewheel(e));
+        this.canvas.addEventListener("touchdown", e => this.touchdown(e));
+        this.canvas.addEventListener("touchup", e => this.touchup(e));
+        this.canvas.addEventListener("touchmove", e => this.touchmove(e));
         this.segmentLength = 120;
         this.vertexRadius = 10;
         this.lineWidth = 4;
@@ -100,11 +103,30 @@ class LSD {
         this.draw();
     }
 
+    touchdown(event) {
+        touch(event, this.mousedown);
+    }
+
+    touchup(event) {
+        touch(event, this.mouseup);
+    }
+
+    touchmove(event) {
+        touch(event, this.mousemove);
+    }
+
+    touch(event, func) {
+        if (event.touches.length == 1) {
+            var touch = event.touches[0];
+            func.apply(this, { button: 0, clientX: touch.clientX, clientY: touch.clientY });
+        }
+    }
+
     mousedown(event) {
         if (event.button == 0) {
             delete this.heldPoint;
             delete this.heldLocal;
-            var point = new Vec(event.x, event.y);
+            var point = new Vec(event.clientX, event.clientY);
             for (var i = 0; i < this.vertices.length; i++) {
                 var vert = this.vertices[i];
                 if (vert.distanceSq(point) < this.vertexClickRadiusSq) {
@@ -123,6 +145,14 @@ class LSD {
         }
     }
 
+    mousemove(event) {
+        if (this.heldPoint) {
+            this.heldPoint.x = event.clientX + this.heldLocal.x;
+            this.heldPoint.y = event.clientY + this.heldLocal.y;
+            this.update(this.heldPoint);
+        }
+    }
+
     mousewheel(event) {
         if (event.wheelDelta > 0) {
             var len = this.vertices.length;
@@ -133,14 +163,6 @@ class LSD {
         } else if (this.vertices.length > 2) {
             this.vertices.pop();
             this.draw();
-        }
-    }
-
-    mousemove(event) {
-        if (this.heldPoint) {
-            this.heldPoint.x = event.x + this.heldLocal.x;
-            this.heldPoint.y = event.y + this.heldLocal.y;
-            this.update(this.heldPoint);
         }
     }
 
