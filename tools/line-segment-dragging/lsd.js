@@ -68,9 +68,9 @@ class LSD {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
         this.canvas.addEventListener("mousemove", e => this.mousemove(e));
+        this.canvas.addEventListener("mousewheel", e => this.mousewheel(e));
         this.segmentLength = 120;
-        this.pointHead = new Vec(0, 0);
-        this.pointTail = new Vec(0, this.segmentLength);
+        this.vertices = [ new Vec(0, 0), new Vec(0, this.segmentLength) ];
         this.resize();
         window.addEventListener("resize", () => this.resize());
     }
@@ -80,15 +80,35 @@ class LSD {
         this.canvas.height = this.height = window.innerHeight;
         this.ctx.lineJoin = "round";
         this.ctx.lineCap = "round";
-		this.ctx.strokeStyle = this.ctx.fillStyle = "#000";
-		this.ctx.lineWidth = 5;
+		this.ctx.strokeStyle = "black";
+		this.ctx.fillStyle = "white";
+		this.ctx.lineWidth = 4;
         this.draw();
     }
 
+    mousewheel(event) {
+        if (event.wheelDelta > 0) {
+            var len = this.vertices.length;
+            var vert2 = this.vertices[len - 1];
+            var vert1 = this.vertices[len - 2];
+            this.vertices.push(vert2.plus(vert2.minus(vert1).normalize().mult(this.segmentLength)));
+            this.draw();
+        } else if (this.vertices.length > 2) {
+            this.vertices.pop();
+            this.draw();
+        }
+    }
+
     mousemove(event) {
-        this.pointHead = new Vec(event.x, event.y);
-		this.pointTail = this.pointHead.plus(this.pointTail.minus(this.pointHead).normalize().mult(this.segmentLength));
-		this.draw();
+        this.vertices[0] = new Vec(event.x, event.y);
+        this.update();
+    }
+
+    update() {
+        for (var i = 1, predecessor = this.vertices[0]; i < this.vertices.length; i++) {
+            this.vertices[i] = predecessor = predecessor.plus(this.vertices[i].minus(predecessor).normalize().mult(this.segmentLength));
+        }
+        this.draw();
     }
 
     draw() {
@@ -97,19 +117,20 @@ class LSD {
     }
 
     drawShape() {
-		var p1 = this.pointHead, p2 = this.pointTail;
 		this.ctx.beginPath();
-		this.ctx.moveTo(p1.x, p1.y);
-		this.ctx.lineTo(p2.x, p2.y);
+		this.ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
+		for (var i = 1; i < this.vertices.length; i++) {
+		    var vert = this.vertices[i];
+		    this.ctx.lineTo(vert.x, vert.y);
+		}
 		this.ctx.stroke();
-		this.drawPoint(p1, 8);
-		this.drawPoint(p2, 8);
-	}
-
-	drawPoint(point, radius) {
-		this.ctx.beginPath();
-		this.ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
-		this.ctx.fill();
+		for (var i = this.vertices.length - 1; i >= 0; i--) {
+            var vert = this.vertices[i];
+		    this.ctx.beginPath();
+		    this.ctx.arc(vert.x, vert.y, 10, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.stroke();
+        }
 	}
 }
 
