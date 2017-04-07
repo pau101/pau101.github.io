@@ -36,6 +36,10 @@ class Vec {
         return new Vec(this.x * other, this.y * other);
     }
 
+    distance(other) {
+        return Math.sqrt(this.distanceSq(other));
+    }
+
     distanceSq(other) {
         var dx = this.x - other.x;
         var dy = this.y - other.y;
@@ -44,6 +48,10 @@ class Vec {
 
     dot(other) {
         return this.x * other.x + this.y * other.y;
+    }
+
+    pitch(other) {
+        return Math.atan2(this.x - other.x, this.y - other.y);
     }
 
     length() {
@@ -148,12 +156,36 @@ class LSD {
     update(controller) {
         var cIdx = this.vertices.indexOf(controller);
         for (var i = cIdx - 1, predecessor = controller; i >= 0; i--) {
-            this.vertices[i] = predecessor = this.solve(predecessor, this.vertices[i]);
+            var solved = undefined;
+            if (i > 0) {
+                solved = this.solveAnchored(predecessor, this.vertices[i], this.vertices[i - 1]);
+            }
+            if (!solved) {
+                solved = this.solve(predecessor, this.vertices[i]);
+            }
+            this.vertices[i] = predecessor = solved;
         }
         for (var i = cIdx + 1, predecessor = controller; i < this.vertices.length; i++) {
-            this.vertices[i] = predecessor = this.solve(predecessor, this.vertices[i]);
+            var solved = undefined;
+            if (i < this.vertices.length - 1) {
+                solved = this.solveAnchored(predecessor, this.vertices[i], this.vertices[i + 1]);
+            }
+            if (!solved) {
+                solved = this.solve(predecessor, this.vertices[i]);
+            }
+            this.vertices[i] = predecessor = solved;
         }
         this.draw();
+    }
+
+    solveAnchored(head, tail, anchor) {
+        var innerAngle = Math.acos(anchor.distance(head) / (2 * this.segmentLength));
+        if (isNaN(innerAngle)) {
+            return undefined;
+        }
+        var side = (anchor.x - head.x) * (tail.y - head.y) - (anchor.y - head.y) * (tail.x - head.x);
+        var angle = (side < 0 ? innerAngle : -innerAngle) - Math.PI / 2 - anchor.pitch(head);
+        return anchor.plus(new Vec(Math.cos(angle) * this.segmentLength, Math.sin(angle) * this.segmentLength));
     }
 
     solve(head, tail) {
