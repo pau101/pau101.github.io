@@ -155,27 +155,21 @@ class LSD {
 
     update(controller) {
         var cIdx = this.vertices.indexOf(controller);
-        for (var i = cIdx - 1, predecessor = controller; i >= 0; i--) {
-            var solved = undefined;
-            if (i > 0) {
-                solved = this.solveAnchored(predecessor, this.vertices[i], this.vertices[i - 1]);
-            }
-            if (!solved) {
-                solved = this.solve(predecessor, this.vertices[i]);
-            }
-            this.vertices[i] = predecessor = solved;
+        for (var i = cIdx - 1; i >= 0; i--) {
+            this.vertices[i] = this.solve(this.vertices[i + 1], this.vertices[i], i > 0 ? this.vertices[i - 1] : undefined);
         }
-        for (var i = cIdx + 1, predecessor = controller; i < this.vertices.length; i++) {
-            var solved = undefined;
-            if (i < this.vertices.length - 1) {
-                solved = this.solveAnchored(predecessor, this.vertices[i], this.vertices[i + 1]);
-            }
-            if (!solved) {
-                solved = this.solve(predecessor, this.vertices[i]);
-            }
-            this.vertices[i] = predecessor = solved;
+        for (var i = cIdx + 1; i < this.vertices.length; i++) {
+            this.vertices[i] = this.solve(this.vertices[i - 1], this.vertices[i], i < this.vertices.length - 1 ? this.vertices[i + 1] : undefined);
         }
         this.draw();
+    }
+
+    solve(predecessor, current, successor) {
+        var solved = undefined;
+        if (successor) {
+            solved = this.solveAnchored(predecessor, current, successor);
+        }
+        return solved || this.solveFreeFlow(predecessor, current);
     }
 
     solveAnchored(head, tail, anchor) {
@@ -184,11 +178,11 @@ class LSD {
             return undefined;
         }
         var side = (anchor.x - head.x) * (tail.y - head.y) - (anchor.y - head.y) * (tail.x - head.x);
-        var angle = (side < 0 ? innerAngle : -innerAngle) - Math.PI / 2 - anchor.pitch(head);
+        var angle = (side < 0 ? innerAngle : -innerAngle) - anchor.pitch(head) - Math.PI / 2;
         return anchor.plus(new Vec(Math.cos(angle) * this.segmentLength, Math.sin(angle) * this.segmentLength));
     }
 
-    solve(head, tail) {
+    solveFreeFlow(head, tail) {
         return head.plus(tail.minus(head).normalize().mult(this.segmentLength));
     }
 
