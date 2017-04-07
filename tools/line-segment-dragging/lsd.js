@@ -192,7 +192,7 @@ class LSD {
     }
 
     solveFreeFlow(head, headDelta, tail) {
-        return head.plus(tail.plus(headDelta.mult(0.5)).minus(head).normalize().mult(this.segmentLength));
+        return head.plus(tail.plus(headDelta.mult(0.25)).minus(head).normalize().mult(this.segmentLength));
     }
 
     draw() {
