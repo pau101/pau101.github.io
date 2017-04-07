@@ -92,7 +92,7 @@ class LSD {
             var ang = i / initialVertCount * Math.PI * 2;
             this.vertices.push(new Vec(cx + Math.cos(ang) * radius, cz + Math.sin(ang) * radius));
         }
-        this.update(this.vertices[0]);
+        this.update(this.vertices[0], this.vertices[0]);
         this.resize();
         window.addEventListener("resize", () => this.resize());
     }
@@ -131,9 +131,7 @@ class LSD {
 
     mousemove(event) {
         if (this.heldPoint) {
-            this.heldPoint.x = event.clientX + this.heldLocal.x;
-            this.heldPoint.y = event.clientY + this.heldLocal.y;
-            this.update(this.heldPoint);
+            this.update(this.heldPoint, new Vec(event.clientX + this.heldLocal.x, event.clientY + this.heldLocal.y));
         }
     }
 
@@ -153,23 +151,34 @@ class LSD {
         }
     }
 
-    update(controller) {
+    update(controller, movedController) {
         var cIdx = this.vertices.indexOf(controller);
+        var controllerDelta = movedController.minus(controller);
+        controller.x = movedController.x;
+        controller.y = movedController.y;
+        var predecessorDelta = controllerDelta;
         for (var i = cIdx - 1; i >= 0; i--) {
-            this.vertices[i] = this.solve(this.vertices[i + 1], this.vertices[i], i > 0 ? this.vertices[i - 1] : undefined);
+            var vert = this.vertices[i];
+            var newVert = this.solve(this.vertices[i + 1], predecessorDelta, vert, i > 0 ? this.vertices[i - 1] : undefined);
+            predecessorDelta = newVert.minus(vert);
+            this.vertices[i] = newVert;
         }
+        predecessorDelta = controllerDelta;
         for (var i = cIdx + 1; i < this.vertices.length; i++) {
-            this.vertices[i] = this.solve(this.vertices[i - 1], this.vertices[i], i < this.vertices.length - 1 ? this.vertices[i + 1] : undefined);
+            var vert = this.vertices[i];
+            var newVert = this.solve(this.vertices[i - 1], predecessorDelta, vert, i < this.vertices.length - 1 ? this.vertices[i + 1] : undefined);
+            predecessorDelta = newVert.minus(vert);
+            this.vertices[i] = newVert;
         }
         this.draw();
     }
 
-    solve(predecessor, current, successor) {
+    solve(predecessor, predecessorDelta, current, successor) {
         var solved = undefined;
-        if (successor) {
+        if (successor && false) {
             solved = this.solveAnchored(predecessor, current, successor);
         }
-        return solved || this.solveFreeFlow(predecessor, current);
+        return solved || this.solveFreeFlow(predecessor, predecessorDelta, current);
     }
 
     solveAnchored(head, tail, anchor) {
@@ -182,8 +191,8 @@ class LSD {
         return anchor.plus(new Vec(Math.cos(angle) * this.segmentLength, Math.sin(angle) * this.segmentLength));
     }
 
-    solveFreeFlow(head, tail) {
-        return head.plus(tail.minus(head).normalize().mult(this.segmentLength));
+    solveFreeFlow(head, headDelta, tail) {
+        return head.plus(tail.plus(headDelta.mult(0.5)).minus(head).normalize().mult(this.segmentLength));
     }
 
     draw() {
