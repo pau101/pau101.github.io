@@ -67,17 +67,14 @@ class LSD {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
-        this.canvas.addEventListener("mousedown", e => this.mousedown(e));
-        this.canvas.addEventListener("mouseup", e => this.mouseup(e));
-        this.canvas.addEventListener("mousemove", e => this.mousemove(e));
+        this.canvas.addEventListener("pointerdown", e => this.mousedown(e));
+        this.canvas.addEventListener("pointerup", e => this.mouseup(e));
+        this.canvas.addEventListener("pointermove", e => this.mousemove(e));
         this.canvas.addEventListener("mousewheel", e => this.mousewheel(e));
-        this.canvas.addEventListener("touchdown", e => this.touchdown(e));
-        this.canvas.addEventListener("touchup", e => this.touchup(e));
-        this.canvas.addEventListener("touchmove", e => this.touchmove(e));
         this.segmentLength = 120;
         this.vertexRadius = 10;
         this.lineWidth = 4;
-        this.vertexClickRadiusSq = this.vertexRadius * this.vertexRadius + this.lineWidth * this.lineWidth;
+        this.vertexClickRadiusSq = Math.pow(this.vertexRadius + this.lineWidth, 2);
         var initialVertCount = 10;
         var cx = window.innerWidth / 2;
         var cz = window.innerHeight / 2;
@@ -103,43 +100,22 @@ class LSD {
         this.draw();
     }
 
-    touchdown(event) {
-        this.touch(event, this.mousedown);
-    }
-
-    touchup(event) {
-        this.touch(event, this.mouseup);
-    }
-
-    touchmove(event) {
-        this.touch(event, this.mousemove);
-    }
-
-    touch(event, func) {
-        if (event.touches.length == 1) {
-            var touch = event.touches[0];
-            func.apply(this, { button: 0, clientX: touch.clientX, clientY: touch.clientY });
-        }
-    }
-
     mousedown(event) {
-        if (event.button == 0) {
-            delete this.heldPoint;
-            delete this.heldLocal;
-            var point = new Vec(event.clientX, event.clientY);
-            for (var i = 0; i < this.vertices.length; i++) {
-                var vert = this.vertices[i];
-                if (vert.distanceSq(point) < this.vertexClickRadiusSq) {
-                    this.heldPoint = vert;
-                    this.heldLocal = vert.minus(point);
-                    break;
-                }
-            }
-        }
+		delete this.heldPoint;
+		delete this.heldLocal;
+		var point = new Vec(event.clientX, event.clientY);
+		for (var i = 0; i < this.vertices.length; i++) {
+			var vert = this.vertices[i];
+			if (vert.distanceSq(point) < this.vertexClickRadiusSq) {
+				this.heldPoint = vert;
+				this.heldLocal = vert.minus(point);
+				break;
+			}
+		}
     }
 
     mouseup(event) {
-        if (event.button == 0 && this.heldPoint) {
+        if (this.heldPoint) {
             delete this.heldPoint;
             delete this.heldLocal;
         }
