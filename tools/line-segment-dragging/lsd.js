@@ -137,7 +137,10 @@ class LSD {
             this.vertices.push(vert2.plus(vert2.minus(vert1).normalize().mult(this.segmentLength)));
             this.draw();
         } else if (this.vertices.length > 2) {
-            this.vertices.pop();
+            if (this.vertices.pop() == this.heldPoint) {
+                delete this.heldPoint;
+                delete this.heldLocal;
+            }
             this.draw();
         }
     }
