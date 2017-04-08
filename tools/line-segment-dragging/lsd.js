@@ -79,11 +79,11 @@ class LSD {
         this.canvas.addEventListener("pointerup", e => this.mouseup(e));
         this.canvas.addEventListener("pointermove", e => this.mousemove(e));
         this.canvas.addEventListener("mousewheel", e => this.mousewheel(e));
-        this.segmentLength = 120;
+        this.segmentLength = 50;
         this.vertexRadius = 10;
         this.lineWidth = 4;
         this.vertexClickRadiusSq = Math.pow(this.vertexRadius + this.lineWidth, 2);
-        var initialVertCount = 5;
+        var initialVertCount = 10;
         var cx = window.innerWidth / 2;
         var cz = window.innerHeight / 2;
         var radius = window.innerWidth / 4;
