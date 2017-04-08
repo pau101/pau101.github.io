@@ -170,11 +170,11 @@ class LSD {
         }
         var head = this.vertices[0];
         this.yaw += this.yawDelta;
+        this.yaw %= Math.PI * 2;
         this.yawDelta *= 0.95;
         if (Math.abs(this.yawDelta) < 0.01) {
             this.yawDelta = Math.random() * 0.1 - 0.05;
         }
-        console.log(this.speed);
         if (this.speed < 5) {
             this.speed += 0.2;
             if (this.speed > 5) {
