@@ -96,11 +96,11 @@ class LSD {
         this.resize();
         window.addEventListener("keydown", e => this.keydown(e));
         window.addEventListener("resize", () => this.resize());
-        // wonder
         window.setInterval(() => this.wonder(), 10);
         this.yaw = 0;
         this.yawDelta = 0;
         this.alive = true;
+        this.speed = 0;
     }
 
     resize() {
@@ -165,21 +165,31 @@ class LSD {
     }
 
     wonder() {
-        if (!this.alive) {
+        if (!this.alive || this.heldPoint) {
             return;
         }
         var head = this.vertices[0];
-        var speed = 5;
         this.yaw += this.yawDelta;
         this.yawDelta *= 0.95;
         if (Math.abs(this.yawDelta) < 0.01) {
             this.yawDelta = Math.random() * 0.1 - 0.05;
         }
-        if (head.x < 0 || head.y < 0 || head.x > this.width || head.y > this.height) {
-            this.yaw += Math.PI;
+        console.log(this.speed);
+        if (this.speed < 5) {
+            this.speed += 0.2;
+            if (this.speed > 5) {
+                this.spped = 5;
+            }
         }
-        this.update(head, head.plus(new Vec(Math.cos(this.yaw) * speed, Math.sin(this.yaw) * speed)));
-        this.draw();
+        var newHead = head.plus(new Vec(Math.cos(this.yaw) * this.speed, Math.sin(this.yaw) * this.speed));
+        if (newHead.x < 0 || newHead.y < 0 || newHead.x > this.width || newHead.y > this.height) {
+            this.yaw += Math.PI;
+            this.speed = 0;
+            this.update(head, head);
+        } else {
+            this.update(head, newHead);
+        }
+        window.requestAnimationFrame(() => this.draw());
     }
 
     update(controller, movedController) {
