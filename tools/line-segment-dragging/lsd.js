@@ -79,7 +79,7 @@ class LSD {
         this.canvas.addEventListener("pointerup", e => this.mouseup(e));
         this.canvas.addEventListener("pointermove", e => this.mousemove(e));
         this.canvas.addEventListener("mousewheel", e => this.mousewheel(e));
-        this.segmentLength = 50;
+        this.segmentLength = 100;
         this.vertexRadius = 10;
         this.lineWidth = 4;
         this.vertexClickRadiusSq = Math.pow(this.vertexRadius + this.lineWidth, 2);
@@ -173,12 +173,12 @@ class LSD {
         this.yaw %= Math.PI * 2;
         this.yawDelta *= 0.95;
         if (Math.abs(this.yawDelta) < 0.01) {
-            this.yawDelta = Math.random() * 0.1 - 0.05;
+            this.yawDelta = Math.random() * 0.3 - 0.15;
         }
-        if (this.speed < 5) {
-            this.speed += 0.2;
-            if (this.speed > 5) {
-                this.spped = 5;
+        if (this.speed < 10) {
+            this.speed += 0.4;
+            if (this.speed > 10) {
+                this.spped = 10;
             }
         }
         var newHead = head.plus(new Vec(Math.cos(this.yaw) * this.speed, Math.sin(this.yaw) * this.speed));
@@ -233,7 +233,7 @@ class LSD {
     }
 
     solveFreeFlow(head, headDelta, tail) {
-        return head.plus(tail.plus(headDelta.mult(0.25)).minus(head).normalize().mult(this.segmentLength));
+        return head.plus(tail.plus(headDelta.mult(0)).minus(head).normalize().mult(this.segmentLength));
     }
 
     draw() {
@@ -249,7 +249,7 @@ class LSD {
             this.ctx.lineTo(vert.x, vert.y);
         }
         this.ctx.stroke();
-        for (var i = this.vertices.length - 1; i >= 0; i--) {
+        for (var i = this.vertices.length - 1; false && i >= 0; i--) {
             var vert = this.vertices[i];
             this.ctx.beginPath();
             this.ctx.arc(vert.x, vert.y, this.vertexRadius, 0, Math.PI * 2);
