@@ -54,7 +54,7 @@ class Pigeon extends Entity {
     carryTo(target, message) {
         this.package = new Package(this.node, target, message);
         this.speed = 1;
-        delete this.location;
+        delete this.node;
     }
 
     tick() {
@@ -65,7 +65,7 @@ class Pigeon extends Entity {
                 var vx = dest.x - this.x;
                 var vy = dest.y - this.y;
                 var dist = Math.sqrt(vx * vx + vy * vy);
-                if (dist < dest.size) {
+                if (dist < dest.size / 2) {
                     this.deliver();
                 } else {
                     this.yaw += (Math.wrap(Math.atan2(vy, vx) - this.yaw + Math.PI, Math.PI * 2) - Math.PI) * Math.clamp(2 / dist, 0.01, 1);
@@ -137,8 +137,8 @@ class Home extends NetNode {
     }
 
     tick() {
-        if (this.pigeons.length > 0 && Math.random() < 0.3) {
-            var node = this.world.getRandomNode(this);
+        if (this.pigeons.length > 0 && Math.random() < 0.001) {
+            var node = this.world.getRandomHouse(this);
             if (node) {
                 var pigeon = this.pigeons.pop();
                 pigeon.carryTo(node, "Hello, World!");
@@ -159,6 +159,7 @@ class World {
         this.ctx = canvas.getContext("2d");
         this.pigeons = []
         this.nodes = []
+        this.houses = []
         this.resize();
         this.pigeonsPerHouse = 5;
         this.generateNetwork();
@@ -174,13 +175,13 @@ class World {
         return this.height;
     }
 
-    getRandomNode(excluding) {
-        if (this.nodes.length < 2) {
+    getRandomHouse(excluding) {
+        if (this.houses.length < 2) {
             return null;
         }
         var node;
         do {
-            node = this.nodes[Math.random() * this.nodes.length | 0];
+            node = this.houses[Math.random() * this.houses.length | 0];
         } while (node === excluding);
         return node;
     }
@@ -209,6 +210,7 @@ class World {
                 home.addPigeon(pigeon);
             }
             this.nodes.push(home);
+            this.houses.push(home);
         }
         this.nodes.push(new ControlCenter(this, centerX, centerY, "#BF4034"));
     }
