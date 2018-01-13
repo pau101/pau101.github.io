@@ -1,16 +1,17 @@
 html {
-    margin: 0;
-    width: 100%;
-    height: 100%;
+	margin: 0;
+	width: 100%;
+	height: 100%;
 }
 
 body {
-    margin: 0;
-    width: 100%;
-    min-height: 100%;
+	margin: 0;
+	width: 100%;
+	min-height: 100%;
 }
 
 canvas {
-    display: block;
+	display: block;
 	touch-action: none;
+	background-color: black;
 }

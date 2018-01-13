@@ -10,9 +10,10 @@
 		gridHeight,
 		cellSize,
 		cellRadius;
-	canvas.addEventListener("pointerdown", mousedown);
-	canvas.addEventListener("pointermove", mousemove);
-	canvas.addEventListener("pointerleave", mouseleave);
+	canvas.addEventListener("mousedown", mousedown);
+	canvas.addEventListener("mousemove", mousemove);
+	canvas.addEventListener("mouseenter", mousemove);
+	canvas.addEventListener("mouseleave", mouseleave);
 	window.addEventListener("resize", resize);
 	window.setInterval(tick, 10);
 	resize();
@@ -155,15 +156,17 @@
 					verts[i][0] = (x + 0.5 + verts[i][0] * weight) * cellSize;
 					verts[i][1] = (y + 0.5 + verts[i][1] * weight) * cellSize;
 				}
-				ctx.lineWidth = lw * scale;
-				ctx.beginPath();
-				ctx.moveTo(verts[0][0], verts[0][1]);
-				for (var i = 1; i < verts.length; i++) {
-					ctx.lineTo(verts[i][0], verts[i][1]);				
+				if (scale > 0) {
+					ctx.lineWidth = lw * scale;
+					ctx.beginPath();
+					ctx.moveTo(verts[0][0], verts[0][1]);
+					for (var i = 1; i < verts.length; i++) {
+						ctx.lineTo(verts[i][0], verts[i][1]);				
+					}
+					ctx.closePath();
+					ctx.fill();
+					ctx.stroke();
 				}
-				ctx.closePath();
-				ctx.fill();
-				ctx.stroke();
 			}
 		}
 		ctx.lineWidth = lw;
