@@ -1,5 +1,5 @@
 (function () {
-    var canvas = document.createElement("canvas"),
+	var canvas = document.createElement("canvas"),
 		ctx = canvas.getContext("2d", { alpha: false }),
 		cursor = { pos: [ -1, -1 ], update: dormant },
 		points = [ cursor ],
@@ -13,19 +13,19 @@
 	canvas.addEventListener("pointerdown", mousedown);
 	canvas.addEventListener("pointermove", mousemove);
 	canvas.addEventListener("pointerleave", mouseleave);
-    window.addEventListener("resize", resize);
-    window.setInterval(tick, 10);
+	window.addEventListener("resize", resize);
+	window.setInterval(tick, 10);
 	resize();
-    document.body.appendChild(canvas);
+	document.body.appendChild(canvas);
 
-    function mousedown(event) {
+	function mousedown(event) {
 		points.push({
 			pos: createMousePoint(event),
 			update: move,
 			yaw: Math.random() * Math.PI * 2,
 			yawDelta: 0
 		});
-    }
+	}
 
 	function mousemove(event) {
 		cursor.pos = createMousePoint(event);
@@ -39,24 +39,24 @@
 		return [ event.clientX / cellSize, event.clientY / cellSize ];
 	}
 
-    function resize() {
-        canvas.width = width = window.innerWidth;
-        canvas.height = height = window.innerHeight;
-        gridHeight = height * gridWidth / width | 0;
-        cellSize = width / gridWidth;
-        cellRadius = cellSize * Math.sqrt(2) / 2;
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = Math.max(1, cellSize / 6);
-        ctx.lineJoin = "round";
-        ctx.fillStyle = "white";
-        draw();
-    }
+	function resize() {
+		canvas.width = width = window.innerWidth;
+		canvas.height = height = window.innerHeight;
+		gridHeight = height * gridWidth / width | 0;
+		cellSize = width / gridWidth;
+		cellRadius = cellSize * Math.sqrt(2) / 2;
+		ctx.strokeStyle = "white";
+		ctx.lineWidth = Math.max(1, cellSize / 6);
+		ctx.lineJoin = "round";
+		ctx.fillStyle = "white";
+		draw();
+	}
 
 	function tick() {
 		for (var i = 0; i < points.length; i++) {
 			points[i].update(points[i]);
 		}
-        window.requestAnimationFrame(draw);
+		window.requestAnimationFrame(draw);
 	}
 
 	function dormant() {}
@@ -119,8 +119,8 @@
 				var verts = [
 					[ -r, -r ],
 					[ r, -r ],
-                    [ r, r ],
-                    [ -r, r ]
+					[ r, r ],
+					[ -r, r ]
 				];
 				var cx = x + 0.5,
 					cy = y + 0.5;
