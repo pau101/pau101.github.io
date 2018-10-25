@@ -273,8 +273,8 @@
     var betaElem = document.getElementById("beta");
     var gammaElem = document.getElementById("gamma");
     window.addEventListener("deviceorientation", e => {
-        alphaElem.innerHTML = e.alpha | 0;
-        betaElem.innerHTML = e.beta | 0;
-        gammaElem.innerHTML = e.gamma | 0;
+        alphaElem.innerHTML = (e.alpha || 0).toFixed(2);
+        betaElem.innerHTML = (e.beta || 0).toFixed(2);
+        gammaElem.innerHTML = (e.gamma || 0).toFixed(2);
     }, true);
 })();
