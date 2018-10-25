@@ -1,14 +1,24 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="en">
 <head>
-    <title>Polygon Triangulation</title>
-    <link rel="stylesheet" type="text/css" href="./style.css"/>
-    <script src="./triangulate.js"></script>
+    <title>Triangulation</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <script src="./three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
-    <div id="canvasPos"></div>
+<div style="position: absolute; top: 10px; left: 10px; width: 200px; background-color: rgba(0, 0, 0, 0.6); color: white; padding: 10px; font-family: 'Consolas'; font-size: 24px;">
+    <span>Alpha:&nbsp;<span id="alpha"></span></span><br>
+    <span>Beta :&nbsp;<span id="beta"></span></span><br>
+    <span>Gamma:&nbsp;<span id="gamma"></span></span><br>
+</div>
+<script src="./triangulation.js"></script>
 </body>
-<script>
-    init();
-</script>
 </html>
