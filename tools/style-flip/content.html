@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Style Flip</title>
+    <link href="css/base.css" rel="stylesheet" type="text/css"/>
+    <link id="light_theme" href="css/light.css" rel="stylesheet" type="text/css" title="Light" data-theme="light" disabled/>
+    <link id="dark_theme" href="css/dark.css" rel="stylesheet" type="text/css" title="Dark" data-theme="dark"/>
+    <script type="application/javascript">
+        (function () {
+            "use strict";
+            var theme = new URLSearchParams(window.location.search).get("theme") || "dark";
+            var links = document.querySelectorAll("[data-theme]");
+            var anyEnabled = false;
+            for (var style of links) {
+                var isEnabled = style.dataset.theme === theme;
+                anyEnabled |= isEnabled;
+                style.disabled = !isEnabled;
+            }
+        })();
+    </script>
+</head>
+<body>
+<div>
+    <article>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam pulvinar ex vulputate, ultricies ligula non, vulputate dolor. Donec a vestibulum risus. Aliquam erat volutpat. Nulla elementum, ex a porttitor facilisis, urna felis efficitur tellus, sed pulvinar lectus arcu ac leo. Duis eu magna ultricies, scelerisque nibh id, aliquet dolor. Suspendisse facilisis lectus nec arcu vestibulum malesuada. Fusce ultrices sollicitudin pretium. In id commodo massa, non luctus justo. Quisque nunc nulla, iaculis et hendrerit ac, porta a nisl. In eget neque id massa sollicitudin efficitur. Nulla eget urna urna. Nulla mollis, magna sed volutpat posuere, lectus neque tincidunt tortor, ut imperdiet massa ligula eget eros. Donec quis lectus sit amet nisi eleifend mollis. Curabitur ut mollis libero, in venenatis ante. Nunc vel est sapien.</p>
+        <p>Suspendisse pharetra massa ut libero placerat semper. Nam vestibulum in libero id tincidunt. Vestibulum luctus pharetra lectus. Fusce varius sollicitudin ante ut condimentum. Nullam placerat blandit ipsum, sit amet iaculis ante tristique in. Cras lacinia hendrerit dolor, nec tristique lectus tempus in. Sed vel odio eu lorem pharetra interdum. Pellentesque mollis consectetur neque, quis posuere nisi fringilla ac. Vestibulum congue volutpat commodo. Pellentesque gravida, sapien non commodo pharetra, elit lacus lacinia massa, eget vulputate arcu quam at lacus. Suspendisse potenti. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur quis nisl vel dolor dignissim semper eu et nunc. Donec elementum nulla eu mauris efficitur vulputate.</p>
+    </article>
+</div>
+</body>
+</html>
