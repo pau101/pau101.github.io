@@ -276,5 +276,14 @@
         alphaElem.innerHTML = (e.alpha || 0).toFixed(2);
         betaElem.innerHTML = (e.beta || 0).toFixed(2);
         gammaElem.innerHTML = (e.gamma || 0).toFixed(2);
+        let x = THREE.Math.degToRad(e.beta);
+        let y = THREE.Math.degToRad(e.gamma);
+        let z = THREE.Math.degToRad(e.alpha);
+        //let mat = new THREE.Matrix4();
+        //mat.makeRotationFromEuler(new THREE.Euler(x, y, z, "ZXY"));
+        //let look = new THREE.Vector3(1, 0, 0);
+        //look.applyMatrix4(mat);
+        camera.rotation.copy(new THREE.Euler(x, y, z, "ZXY"));
+        camera.updateProjectionMatrix();
     }, true);
 })();
