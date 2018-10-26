@@ -279,11 +279,7 @@
         let x = THREE.Math.degToRad(e.beta);
         let y = THREE.Math.degToRad(e.gamma);
         let z = THREE.Math.degToRad(e.alpha);
-        //let mat = new THREE.Matrix4();
-        //mat.makeRotationFromEuler(new THREE.Euler(x, y, z, "ZXY"));
-        //let look = new THREE.Vector3(1, 0, 0);
-        //look.applyMatrix4(mat);
-        camera.rotation.copy(new THREE.Euler(x, y, z, "ZXY"));
-        camera.updateProjectionMatrix();
+        camera.rotation.set(x, y, z, "ZXY");
+        camera.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new Vector(-1, 0, 0), Math.PI / 2));
     }, true);
 })();
