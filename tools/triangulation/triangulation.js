@@ -105,8 +105,22 @@
             this.faces = [];
         }
 
-        add(n) {
-            this.nodes.push(n);
+        addPoint(position) {
+            const node = new PointNode(this.nodes.length, position);
+            this.nodes.push(node);
+            return node;
+        }
+
+        addLine(source, direction) {
+            const node = new LineNode(this.nodes.length, source, direction);
+            this.nodes.push(node);
+            return node;
+        }
+
+        addTri(A, B, alpha, beta, plane, side) {
+            const node = new TriNode(this.nodes.length, A, B, alpha, beta, plane, side);
+            this.nodes.push(node);
+            return node;
         }
 
         face(f) {
@@ -122,7 +136,7 @@
             throw 'Not implemented';
         }
     }
-    class FixedNode extends Node {
+    class PointNode extends Node {
         constructor(index, position) {
             super(index);
             this.position = position;
@@ -132,7 +146,7 @@
             return this.position;
         }
     }
-    class RayNode extends Node {
+    class LineNode extends Node {
         constructor(index, source, direction) {
             super(index);
             this.source = source;
@@ -143,7 +157,7 @@
             return this.source.vertex.plus(this.direction);
         }
     }
-    class AngleNode extends Node {
+    class TriNode extends Node {
         constructor(index, A, B, alpha, beta, plane, side) {
             super(index);
             this.A = A;
@@ -172,78 +186,74 @@
                 .plus(A);
         }
     }
-    let net = new Network();
-    let A = new FixedNode(0, new Vector(0, 0, 0));
-    let B = new RayNode(1, A, new Vector(1, 0, 0));
-    net.add(A);
-    net.add(B);
-    let floor = new Plane(new Vector(0, 0, 0), new Vector(0, 1, 0).normalize());
-    let betaAngle = Angle.degrees(60);
-    let C = new AngleNode(2, A, B, Angle.degrees(60), betaAngle, floor, 1);
-    net.add(C);
-    let D = new AngleNode(3, A, C, Angle.degrees(50), Angle.degrees(20), floor, 1);
-    net.add(D);
+    const net = new Network();
+    const A = net.addPoint(new Vector(0, 0, 0));
+    const B = net.addLine(A, new Vector(1, 0, 0));
+    const floor = new Plane(new Vector(0, 0, 0), new Vector(0, 1, 0).normalize());
+    const betaAngle = Angle.degrees(60);
+    const C = net.addTri(A, B, Angle.degrees(60), betaAngle, floor, 1);
+    const D = net.addTri(A, C, Angle.degrees(50), Angle.degrees(20), floor, 1);
     net.face(new Face(A, B, C));
     net.face(new Face(A, C, D));
 
-    let camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.001, 100);
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.001, 100);
     camera.position.set(0, 1.5, 0);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
-    let scene = new THREE.Scene();
+    const scene = new THREE.Scene();
     scene.background = new THREE.Color("white");
 
     scene.add(new THREE.GridHelper(4, 16, "silver", "lightgray"));
 
-    let geom = new THREE.Geometry();
-    for (let node of net.nodes) {
-        let vertex = node.vertex;
+    const geom = new THREE.Geometry();
+    for (const node of net.nodes) {
+        const vertex = node.vertex;
         geom.vertices.push(new THREE.Vector3(vertex.x, vertex.y, vertex.z));
     }
-    for (let f of net.faces) {
+    for (const f of net.faces) {
         geom.faces.push(new THREE.Face3(f.A.index, f.B.index, f.C.index));
     }
     geom.computeFaceNormals();
 
-    let object = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({
+    const object = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({
         color: "black",
         wireframe: true,
         depthTest: false
     }));
     scene.add(object);
 
-    let arcMat = new THREE.MeshBasicMaterial({ color: "red", transparent: true, opacity: 0.5, depthTest: false, side: THREE.DoubleSide });
-    for (let node of [ C, D ]) {
+    const arcMat = new THREE.MeshBasicMaterial({ color: "red", transparent: true, opacity: 0.5, depthTest: false, side: THREE.DoubleSide });
+    for (const node of [ C, D ]) {
         // TODO: support side
         // TODO: support planes
         {
-            let arc = new THREE.CircleGeometry(0.1, 4, (Math.PI - node.beta.value), node.beta.value);
-            let b = node.B.vertex;
-            let mesh = new THREE.Mesh(arc, arcMat);
+            const arc = new THREE.CircleGeometry(0.1, 4, (Math.PI - node.beta.value), node.beta.value);
+            const b = node.B.vertex;
+            const mesh = new THREE.Mesh(arc, arcMat);
             mesh.position.x = b.x;
             mesh.position.y = b.y;
             mesh.position.z = b.z;
 
             // rotate to XZ plane
             mesh.rotateX(-Math.PI / 2);
-            let BA = node.A.vertex.minus(node.B.vertex);
-            let rot = new THREE.Quaternion();
+            const BA = node.A.vertex.minus(node.B.vertex);
+            const rot = new THREE.Quaternion();
             rot.setFromAxisAngle(new Vector(0, 1, 0), (Math.PI - BA.angle(new Vector(1, 0, 0))));
             mesh.applyQuaternion(rot);
 
             scene.add(mesh);
         }
         {
-            let arc = new THREE.CircleGeometry(0.1, 4, 0, node.alpha.value);
-            let a = node.A.vertex;
-            let mesh = new THREE.Mesh(arc, arcMat);
+            const arc = new THREE.CircleGeometry(0.1, 4, 0, node.alpha.value);
+            const a = node.A.vertex;
+            const mesh = new THREE.Mesh(arc, arcMat);
             mesh.position.x = a.x;
             mesh.position.y = a.y;
             mesh.position.z = a.z;
 
             // rotate to XZ plane
             mesh.rotateX(-Math.PI / 2);
-            let AB = node.B.vertex.minus(node.A.vertex);
-            let rot = new THREE.Quaternion();
+            const AB = node.B.vertex.minus(node.A.vertex);
+            const rot = new THREE.Quaternion();
             rot.setFromAxisAngle(new Vector(0, 1, 0), AB.angle(new Vector(1, 0, 0)));
             mesh.applyQuaternion(rot);
 
@@ -251,12 +261,12 @@
         }
     }
 
-    let renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    var time = 0;
+    let time = 0;
     (function render() {
         requestAnimationFrame(render);
         renderer.render(scene, camera);
@@ -269,17 +279,20 @@
         }
         geom.verticesNeedUpdate = true;*/
     })();
-    var alphaElem = document.getElementById("alpha");
-    var betaElem = document.getElementById("beta");
-    var gammaElem = document.getElementById("gamma");
+    const alphaElem = document.getElementById("alpha");
+    const betaElem = document.getElementById("beta");
+    const gammaElem = document.getElementById("gamma");
     window.addEventListener("deviceorientation", e => {
         alphaElem.innerHTML = (e.alpha || 0).toFixed(2);
         betaElem.innerHTML = (e.beta || 0).toFixed(2);
         gammaElem.innerHTML = (e.gamma || 0).toFixed(2);
-        let x = THREE.Math.degToRad(e.beta);
-        let y = THREE.Math.degToRad(e.gamma);
-        let z = THREE.Math.degToRad(e.alpha);
+        const x = THREE.Math.degToRad(e.beta);
+        const y = THREE.Math.degToRad(e.gamma);
+        const z = THREE.Math.degToRad(e.alpha);
         camera.rotation.set(x, y, z, "ZXY");
         camera.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new Vector(-1, 0, 0), Math.PI / 2));
     }, true);
+    /*const video = document.getElementById("video_feed");
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => video.srcObject = stream);*/
 })();
