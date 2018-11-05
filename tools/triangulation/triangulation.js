@@ -192,12 +192,13 @@
     const floor = new Plane(new Vector(0, 0, 0), new Vector(0, 1, 0).normalize());
     const betaAngle = Angle.degrees(60);
     const C = net.addTri(A, B, Angle.degrees(60), betaAngle, floor, 1);
-    const D = net.addTri(A, C, Angle.degrees(50), Angle.degrees(20), floor, 1);
+    const wall = new Plane(new Vector(0, 0, 0), C.vertex.minus(A.vertex).crossProduct(new Vector(0, 1, 0)).normalize());
+    const D = net.addTri(A, C, Angle.degrees(90), Angle.degrees(20), wall, 1);
     net.face(new Face(A, B, C));
     net.face(new Face(A, C, D));
 
     const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.001, 100);
-    camera.position.set(0, 1.5, 0);
+    camera.position.set(1, 1.25, 1);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("white");
@@ -282,7 +283,7 @@
     const alphaElem = document.getElementById("alpha");
     const betaElem = document.getElementById("beta");
     const gammaElem = document.getElementById("gamma");
-    window.addEventListener("deviceorientation", e => {
+    /*window.addEventListener("deviceorientation", e => {
         alphaElem.innerHTML = (e.alpha || 0).toFixed(2);
         betaElem.innerHTML = (e.beta || 0).toFixed(2);
         gammaElem.innerHTML = (e.gamma || 0).toFixed(2);
@@ -291,7 +292,7 @@
         const z = THREE.Math.degToRad(e.alpha);
         camera.rotation.set(x, y, z, "ZXY");
         camera.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new Vector(-1, 0, 0), Math.PI / 2));
-    }, true);
+    }, true);*/
     /*const video = document.getElementById("video_feed");
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => video.srcObject = stream);*/
